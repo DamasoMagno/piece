@@ -1,44 +1,55 @@
 const bodyChildren = document.querySelector("body").children;
 const tags = [...bodyChildren];
-const CustomTagsFiltered = tags.filter(item =>item.tagName.includes("-"))
-.map(item => item.tagName.split("-"));
-const tagsFormatted = CustomTagsFiltered.map( item => formattTags(item))
+const customTagsFiltered = tags.filter(tag => customTagsFilter(tag));
+const tagsFormatted = customTagsFiltered.map( item => formattTags(item));
 
-function formattTags(item){
-  const firstPartOfTag = item[0];
-  const secondPartOfTag = item[1];
-  return (
-    firstPartOfTag[0] + firstPartOfTag.slice(1, firstPartOfTag.length).toLowerCase() + 
-    secondPartOfTag[0] + secondPartOfTag.slice(1, secondPartOfTag.length).toLowerCase()
-  );
+function customTagsFilter(tag){
+  return tag.tagName.includes("-component".toUpperCase());
 }
 
-async function getHtmlOfHeaderComponent(){
+function formattTags(item){
+  const ComponentName = item.tagName.split("-")[0];
+  return ComponentName[0] + ComponentName.slice(1, ComponentName.length).toLowerCase();
+}
+
+async function getHTMLComponents(){
   const response = await fetch("./HTMLComponents/Components.json");
   const HTMLComponents = await response.json();
   return HTMLComponents;
 }
 
-getHtmlOfHeaderComponent()
-.then( response => {
-  for(let Component of response){
-  console.log(tagsFormatted, Component);
-    if(tagsFormatted == Component.name){
-      fetch(`./HTMLComponents/${Component.name}/index.html`)
+function createCustomTag(className, response){
+  const classes = {};
+  classes[className] = class extends HTMLElement {
+    constructor(){
+      super();
+    }
+
+    generateStyle(){
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `../../HTMLComponents/${className}/style.css`;
+      this.appendChild(link);
+    }
+
+    connectedCallback() {
+      this.generateStyle();
+      this.innerHTML += response;
+    }
+  }
+  
+  customElements.define("header-component", classes[className]);
+}
+
+getHTMLComponents()
+.then( Components => {
+  for(const Component of Components){
+    const customComponent = Component.name;
+    if(tagsFormatted == customComponent){
+      fetch(`./HTMLComponents/${customComponent}/index.html`)
       .then(response => response.text())
       .then(response => {
-
-        class HeaderComponent extends HTMLElement{
-          constructor(){
-            super();
-          }
-
-          connectedCallback() {
-            this.innerHTML = response;
-          }
-        }
-
-        customElements.define("header-component", HeaderComponent)
+        createCustomTag(customComponent, response);
       },
     )}
   }
