@@ -3,19 +3,20 @@ const tags = [...bodyChildren];
 const customTagsFiltered = tags.filter(tag => customTagsFilter(tag));
 const tagsFormatted = customTagsFiltered.map( item => formattTags(item));
 
+
 function customTagsFilter(tag){
   return tag.tagName.includes("-component".toUpperCase());
 }
 
 function formattTags(item){
-  const ComponentName = item.tagName.split("-")[0];
-  return ComponentName[0] + ComponentName.slice(1, ComponentName.length).toLowerCase();
+  const componentName = item.tagName.split("-")[0];
+  return componentName[0] + componentName.slice(1, componentName.length).toLowerCase();
 }
 
 async function getHTMLComponents(){
   const response = await fetch("./HTMLComponents/Components.json");
-  const HTMLComponents = await response.json();
-  return HTMLComponents;
+  const htmlComponents = await response.json();
+  return htmlComponents;
 }
 
 function createCustomTag(className, response){
@@ -42,16 +43,22 @@ function createCustomTag(className, response){
   customElements.define(nameOfComponent, classes[className]);
 }
 
+function renderComponent(component){
+  fetch(`./HTMLComponents/${component}/index.html`)
+  .then(response => response.text())
+  .then(response => {
+    createCustomTag(component, response);
+  });
+}
+
 getHTMLComponents()
 .then( Components => {
   for(const Component of Components){
-    const customComponent = Component.name;
-    if(tagsFormatted == customComponent){
-      fetch(`./HTMLComponents/${customComponent}/index.html`)
-      .then(response => response.text())
-      .then(response => {
-        createCustomTag(customComponent, response);
-      },
-    )}
+    const componentsExists = tagsFormatted.find(tag => Component.name === tag);
+    if(!componentsExists){
+      continue;
+    }
+
+    renderComponent(componentsExists);
   }
 });

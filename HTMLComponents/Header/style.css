@@ -1,3 +1,9 @@
-header {
-  background: red;
+#header {
+  background: #333;
+  height: 50px;
+  color: #FFFF;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

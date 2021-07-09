@@ -1,6 +1,5 @@
 [
-  { 
-    "id": 1, 
-    "name": "Header"
-  }
+  { "name": "Header" },
+  { "name": "Main" },
+  { "name": "Footer" }
 ]
