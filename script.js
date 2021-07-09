@@ -38,7 +38,8 @@ function createCustomTag(className, response){
     }
   }
   
-  customElements.define("header-component", classes[className]);
+  const nameOfComponent = `${className.toLowerCase()}-component`;
+  customElements.define(nameOfComponent, classes[className]);
 }
 
 getHTMLComponents()
