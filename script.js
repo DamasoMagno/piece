@@ -3,7 +3,6 @@ const tags = [...bodyChildren];
 const customTagsFiltered = tags.filter(tag => customTagsFilter(tag));
 const tagsFormatted = customTagsFiltered.map( item => formattTags(item));
 
-
 function customTagsFilter(tag){
   return tag.tagName.includes("-component".toUpperCase());
 }
@@ -28,8 +27,8 @@ function createCustomTag(className, response){
 
     generateStyle(){
       const link = document.createElement("link");
-      link.rel = "stylesheet";
       link.href = `../../HTMLComponents/${className}/style.css`;
+      link.rel = "stylesheet";
       this.appendChild(link);
     }
 
@@ -45,9 +44,11 @@ function createCustomTag(className, response){
 
 function renderComponent(component){
   fetch(`./HTMLComponents/${component}/index.html`)
-  .then(response => response.text())
   .then(response => {
-    createCustomTag(component, response);
+    if(response.status === 404){
+      return;
+    }
+    createCustomTag(component, response)
   });
 }
 
