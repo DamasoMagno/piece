@@ -1,4 +1,4 @@
-const bodyChildren = document.querySelector("body").children;
+const bodyChildren = document.querySelectorAll("body *");
 const tags = [...bodyChildren];
 const customTagsFiltered = tags.filter(tag => customTagsFilter(tag));
 const tagsFormatted = customTagsFiltered.map( item => formattTags(item));
@@ -32,9 +32,23 @@ function createCustomTag(className, response){
       this.appendChild(link);
     }
 
+    setOwnAttributes(){
+      const element = document.querySelector(`${this.dataset.tag}`);
+
+      if(this.dataset.attribute){
+        const [attributeName, attributeValue] = this.dataset.attribute.split("-");
+        element.setAttribute(attributeName, attributeValue);
+      }
+
+      if(element){
+        element.innerHTML = this.dataset.html || "";
+      }
+    }
+
     connectedCallback() {
       this.generateStyle();
       this.innerHTML += response;
+      this.setOwnAttributes();
     }
   }
   
