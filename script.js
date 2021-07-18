@@ -12,10 +12,10 @@ function formattTags(item){
   return componentName[0] + componentName.slice(1, componentName.length).toLowerCase();
 }
 
-async function getHTMLComponents(){
+async function getAllComponents(){
   const response = await fetch("./HTMLComponents/Components.json");
-  const htmlComponents = await response.json();
-  return htmlComponents;
+  const allComponents = await response.json();
+  return allComponents;
 }
 
 function createCustomTag(className, response){
@@ -46,13 +46,15 @@ function renderComponent(component){
   fetch(`./HTMLComponents/${component}/index.html`)
   .then(response => {
     if(response.status === 404){
-      return;
+      return "";
     }
-    createCustomTag(component, response)
-  });
+    return response.text();
+  })
+  .then(response => createCustomTag(component, response));
+  
 }
 
-getHTMLComponents()
+getAllComponents()
 .then( Components => {
   for(const Component of Components){
     const componentsExists = tagsFormatted.find(tag => Component.name === tag);
