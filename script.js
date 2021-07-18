@@ -40,8 +40,13 @@ function createCustomTag(className, response){
         element.setAttribute(attributeName, attributeValue);
       }
 
-      if(element){
-        element.innerHTML = this.dataset.html || "";
+      if(element && !element.innerHTML){
+        element.innerHTML = this.dataset.html || `Tag don't have content`;
+      }
+
+      const datasetKeys = Object.keys(this.dataset);
+      for(const key of datasetKeys){
+        delete this.dataset[key];
       }
     }
 
