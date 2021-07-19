@@ -8,8 +8,7 @@ function customTagsFilter(tag){
 }
 
 function formattTags(item){
-  const componentName = item.tagName.split("-")[0];
-  return componentName[0] + componentName.slice(1, componentName.length).toLowerCase();
+  return item.tagName.split("-")[0];
 }
 
 async function getAllComponents(){
@@ -35,6 +34,7 @@ function createCustomTag(className, response){
     setOwnAttributes(){
       const element = document.querySelector(`${this.dataset.tag}`);
 
+      
       if(this.dataset.attribute){
         const [attributeName, attributeValue] = this.dataset.attribute.split("-");
         element.setAttribute(attributeName, attributeValue);
@@ -70,17 +70,20 @@ function renderComponent(component){
     return response.text();
   })
   .then(response => createCustomTag(component, response));
-  
+}
+
+function componentExist(Component){
+  return tagsFormatted.some(tag => tag === Component.name.toUpperCase());
 }
 
 getAllComponents()
 .then( Components => {
   for(const Component of Components){
-    const componentsExists = tagsFormatted.find(tag => Component.name === tag);
+    const componentsExists = componentExist(Component) ? Component.name : "";
     if(!componentsExists){
       continue;
     }
-
+    
     renderComponent(componentsExists);
   }
 });
