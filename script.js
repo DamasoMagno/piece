@@ -25,34 +25,58 @@ function createCustomTag(className, response){
     }
 
     generateStyle(){
+      const head = document.querySelector("head");
       const link = document.createElement("link");
       link.href = `../../HTMLComponents/${className}/style.css`;
       link.rel = "stylesheet";
-      this.appendChild(link);
+      head.appendChild(link);
     }
 
     setOwnAttributes(){
-      const element = document.querySelector(`${this.dataset.tag}`);
+      Object.keys(this.dataset)
+      .forEach( key => {
+        const data = this.dataset[key];
+        let positionUppcase = 0;
 
+        for(const letter of key){
+          if(letter === letter.toUpperCase()){
+            positionUppcase = key.indexOf(letter);
+          }
+        }
+
+        const selector = key.slice(1, positionUppcase - 1);
+        const type = key.slice(positionUppcase).toLowerCase();
+        const element = document.querySelector(`${selector}`);
+
+        if(type === "html"){
+          element.innerHTML = data;
+          return;
+        }
+
+        if(type === "attribute"){
+          if(data[0] === "."){
+            element.classList.add(data.slice(1));
+            return;
+          }
+
+          const [attributeName, attributeValue] = data.split("-");
+          element.setAttribute(attributeName, attributeValue);
+          return;
+        }
+      });
       
-      if(this.dataset.attribute){
-        const [attributeName, attributeValue] = this.dataset.attribute.split("-");
-        element.setAttribute(attributeName, attributeValue);
-      }
-
-      if(element && !element.innerHTML){
-        element.innerHTML = this.dataset.html || `Tag don't have content`;
-      }
-
-      const datasetKeys = Object.keys(this.dataset);
-      for(const key of datasetKeys){
+      const keys = Object.keys(this.dataset);
+      for(const key of keys){
         delete this.dataset[key];
       }
     }
 
     connectedCallback() {
       this.generateStyle();
-      this.innerHTML += response;
+      const domParser = new DOMParser();
+      const responseToHTML = domParser.parseFromString(response, "text/html");
+      this.replaceWith(responseToHTML.body.children[0]);
+
       this.setOwnAttributes();
     }
   }
@@ -67,23 +91,24 @@ function renderComponent(component){
     if(response.status === 404){
       return "";
     }
-    return response.text();
-  })
-  .then(response => createCustomTag(component, response));
+
+    response.text()
+    .then(response => createCustomTag(component, response));
+  });
 }
 
 function componentExist(Component){
-  return tagsFormatted.some(tag => tag === Component.name.toUpperCase());
+  return tagsFormatted.some(tag => Component.name.toUpperCase() === tag);
 }
 
 getAllComponents()
 .then( Components => {
-  for(const Component of Components){
+  for (const Component of Components) {
     const componentsExists = componentExist(Component) ? Component.name : "";
-    if(!componentsExists){
+    if (!componentsExists) {
       continue;
     }
-    
+
     renderComponent(componentsExists);
   }
 });
