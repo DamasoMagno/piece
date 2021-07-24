@@ -1,8 +1,5 @@
-import { createCustomTag } from "./scripts/customTag.js";
-import { Errors } from "./scripts/errors.js";
-
 const body = document.querySelector("body");
-const bodyChildren = document.querySelectorAll("body *");
+const bodyChildren = body.querySelectorAll("*");
 const customTagsFiltered = [...bodyChildren].filter(tag => customTagsFilter(tag));
 const tagsFormatted = customTagsFiltered.map( item => formattTags(item));
 
@@ -13,6 +10,41 @@ function customTagsFilter(tag){
 function formattTags(item){
   return item.tagName.split("-")[0];
 }
+
+const Errors = {
+  bodySyles: [
+    { name: "height", value: "100vh" },
+    { name: "display", value: "flex" },
+    { name: "justifyContent", value: "center" },
+    { name: "alignItems", value: "center" },
+    { name: "padding", value: "0 1rem" }
+  ],
+
+  insertStylesBody(){
+    this.bodySyles.forEach( style =>  {
+      body.style[style.name] = style.value;
+    });
+  },
+
+  generateHTMLError(error){
+    this.insertStylesBody();
+  
+    const errorHTML = `
+      <div style="background: #000;padding: 1rem; border-radius: 1rem; box-shadow: 5px 5px 10px rgba(0,0,0,.5);">
+        <div style="background: #FFFF; color: #FF0000; width: 100%; height: 100%; padding: 1rem; border-radius: 1rem;">
+          <p style="width: 100%; word-break: break-all; font-weight: bold; letter-spacing: .1em;">
+            Error: ${error.status}
+          </p>
+          <p style="width: 100%; word-break: break-all; font-weight: 700; letter-spacing: .1em;">
+            File: ${error.url} ${error.statusText.toLowerCase()}
+          </p>
+        </div>
+      </div>  
+    `;
+  
+    return errorHTML;
+  }
+};
 
 async function getAllComponents(){
   const response = await fetch("./Components/Components.json");
@@ -25,7 +57,17 @@ function verifyIfComponentExist(Component){
   return tagsFormatted.some(tag => component === tag);
 }
 
-function removeDeadTags(){
+function removeDeadTags(component = false){
+  if(!!component.length){
+    customTagsFiltered.forEach(tag => {
+      if(tag.tagName.split("-")[0] !== component.toUpperCase()){
+        body.removeChild(tag);
+      }
+    });
+
+    return;
+  }  
+
   customTagsFiltered.forEach(tag => {
     body.removeChild(tag);
   });
@@ -33,28 +75,123 @@ function removeDeadTags(){
 
 getAllComponents()
 .then( Components => {
-  if(Components.length){
-    for(const component of Components){
-      const componentsExists = verifyIfComponentExist(component) && component.name;
-      if(!componentsExists){
-        continue;
-      }
-
+  if(!!Components.length){
+    for (const Component of Components) {
+      const componentsExists = verifyIfComponentExist(Component) && Component.name;
+      if (!componentsExists) continue;
+      
       renderComponent(componentsExists);
     }
+    return;
   }
-
   removeDeadTags();
 });
+
+function createCustomTag(className, contentHTML){
+  const classes = {};
+  classes[className] = class extends HTMLElement {
+    constructor(){
+      super();
+    }
+
+    formatSelector(selector){
+      return selector === "id" ? "#" : ".";
+    }
+
+    createSelector(key, nameSelectorPosition, typeAttributePosition){
+      const typeSelector = this.formatSelector(key.slice(0, nameSelectorPosition));
+      const nameSelector = key.slice(nameSelectorPosition, typeAttributePosition).toLowerCase();
+
+      const selector = typeSelector.concat(nameSelector);
+      return selector;
+    }
+
+    generateStyle(){
+      const head = document.querySelector("head");
+      const link = document.createElement("link");
+
+      link.href = `../../Components/${className}/style.css`;
+      link.rel = "stylesheet";
+      head.appendChild(link);
+    }
+
+    setContentOfAttributes(data){
+      const { type, element, content } = data;
+
+      if(type === "html" && element){
+        element.innerHTML = content;
+        return;
+      }
+
+
+      if(type === "attributes" && element){
+        content.split(",").forEach( attribute => {
+          const [attributeType, attributeValue] = attribute.split("-");
+          if(!!element.classList.length && attributeType.trim("") === "class"){
+            element.classList.add(attributeValue);
+            return;
+          }
+
+          element.setAttribute(attributeType.trim(""), attributeValue.trim(""));
+        });
+      }
+
+    }
+
+    setOwnAttributes(){
+      Object.keys(this.dataset)
+      .forEach( key => {
+        let typeAttributePosition = "";
+        let nameSelectorPosition = "";
+        
+        for(const letter of key){
+          if(letter === letter.toUpperCase()){
+            if(nameSelectorPosition){
+              typeAttributePosition = key.lastIndexOf(letter);
+              continue; //return
+            }
+
+            nameSelectorPosition = key.indexOf(letter);
+          }
+        }
+                
+        const type = key.slice(typeAttributePosition).toLowerCase();
+        const content = this.dataset[key];
+
+        const selector = this.createSelector(key, nameSelectorPosition, typeAttributePosition);
+        const element = document.querySelector(`${selector}`);
+
+        const data = { type, content, element }
+        this.setContentOfAttributes(data);
+      });
+    }
+
+    renderComponent(){      
+      if(!contentHTML) return;
+
+      const domParser = new DOMParser();
+      const responseToHTML = domParser.parseFromString(contentHTML, "text/html");
+      this.replaceWith(responseToHTML.body.children[0]);
+    }
+
+    connectedCallback() {
+      this.generateStyle();
+      this.renderComponent();
+      this.setOwnAttributes();
+    }
+  }
+  
+  let nameOfComponent = `${className.toLowerCase()}-component`;
+  customElements.define(nameOfComponent, classes[className]);
+}
 
 function renderComponent(component){
   fetch(`./Components/${component}/index.html`)
   .then(response => {
     if(response.status === 404){
       body.innerHTML = Errors.generateHTMLError(response);
-      return;
     }
+
     return response.text()
-  })
-  .then(response => createCustomTag(component, response));
+  }).then(response => createCustomTag(component, response));
 }
