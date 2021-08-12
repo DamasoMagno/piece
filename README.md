@@ -37,7 +37,7 @@ Components
   <body>
     <componentName-component></compoentName-component>
 
-    <script src="./Componnets/index.js"></script>
+    <script src="./Components/index.js"></script>
   </body>
  ```
 </p>
