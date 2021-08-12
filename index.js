@@ -34,9 +34,8 @@ const Errors = {
 };
 
 async function getAllComponents(){
-  const response = await fetch("./Components/Components.json");
-  const allComponents = await response.json();
-  return allComponents;
+  const allComponents = await fetch("./Components/Components.json");
+  return allComponents.json();
 }
 
 function createCustomTag(className, contentHTML){
@@ -45,16 +44,15 @@ function createCustomTag(className, contentHTML){
       super();
     }
 
-    formatSelector(key, nameSelectorPosition){
-      let typeSelector = "";
-      const selectorName = key.slice(0, nameSelectorPosition);
-      if(selectorName === "id"){
-        typeSelector = "#";
-      } else if(selectorName === "class"){
-        typeSelector = ".";
+    formatSelector(attributeType, attributeName){
+      switch(attributeType){
+        case "id":
+          return "#".concat(attributeName);
+        case "class": 
+          return ".".concat(attributeName);
+        default:
+          return attributeType;
       }
-
-      return typeSelector;
     }
 
     createSelector(key, nameSelectorPosition, typeAttributePosition){
@@ -65,52 +63,39 @@ function createCustomTag(className, contentHTML){
     }
 
     setContentOfAttributes(data){
-      const { type, element, content } = data;
-
-      if(type === "html" && element){
+      const { typeAttribute, element, content } = data;
+      
+      if(typeAttribute === "html" && element){        
         element.innerHTML = content;
-        return;
       }
 
-      if(type === "attributes" && element){
-        content.split(",").forEach( attribute => {
-          const [attributeType, attributeValue] = attribute.split("-");
+      if(typeAttribute === "attributes" && element){
+        content.split(",")
+          .forEach( attribute => {
+            const [attributeType, attributeValue] = attribute.split("-");
 
-          if(!!element.classList.length && attributeType.trim("") === "class"){
-            element.classList.add(attributeValue);
-            return;
-          }
+            if(!!element.classList.length && attributeType.trim("") === "class"){
+              element.classList.add(attributeValue);
+              return;
+            }
 
-          element.setAttribute(attributeType.trim(""), attributeValue.trim(""));
-        });
+            element.setAttribute(attributeType.trim(""), attributeValue.trim(""));
+          });
       }
 
     }
 
     setOwnAttributes(){
-      Object.keys(this.dataset)
-      .forEach( key => {
-        let typeAttributePosition = 0;
-        let nameSelectorPosition = 0;
-        
-        for(const letter of key){
-          if(letter === letter.toUpperCase()){
-            if(nameSelectorPosition){
-              typeAttributePosition = key.lastIndexOf(letter);
-              continue;
-            }
-            
-            nameSelectorPosition = key.indexOf(letter);
-          }
-        }
-                
-        const type = key.slice(typeAttributePosition).toLowerCase();
-        const content = this.dataset[key];
-        
-        const selector = this.createSelector(key, nameSelectorPosition, typeAttributePosition);
+      [...this.attributes].forEach( attribute => {
+        let { nodeName, nodeValue } = attribute;
+        let [ typeSelector, selectorName ] = nodeName.split("-");
+        const selector = this.formatSelector(typeSelector, selectorName);
+
+        const typeAttribute = nodeName.slice(nodeName.lastIndexOf("-") + 1 );
+        const content = nodeValue;
         const element = document.querySelector(`${selector}`);
-        
-        this.setContentOfAttributes({ type, content, element });
+
+        this.setContentOfAttributes({typeAttribute, element, content})
       });
     }
 
@@ -143,8 +128,8 @@ function createCustomTag(className, contentHTML){
 }
 
 function removeDeadTags(){
-  customTagsFiltered.forEach( customTag => {
-    bodyChildren.forEach( tagExisting => {
+  bodyChildren.forEach( tagExisting => {
+    customTagsFiltered.forEach( customTag => {
       if(tagExisting.tagName.includes("-") && tagExisting === customTag){
         body.removeChild(tagExisting);
       }
@@ -157,33 +142,39 @@ function verifyIfComponentExists(Component){
   return tagsFormatted.some(tag => component === tag);
 }
 
-getAllComponents()
-.then( Components => {
-  for(const Component of Components) {
-    const componentsExists = verifyIfComponentExists(Component) && Component.component; 
-    if(!componentsExists) continue;     
+const renderComponents = async () => {
+  try {
+    for(const Component of await getAllComponents()){
+      const componentsExists = verifyIfComponentExists(Component) && Component.component;    
+      if(!componentsExists) continue;
 
-    for(const customTag of customTagsFiltered){
-      if(customTag.tagName.split("-")[0] === componentsExists.toUpperCase()){
-        const indexOfCustomTag = customTagsFiltered.findIndex(tag => tag === customTag);
-        customTagsFiltered.splice(indexOfCustomTag, 1);
-        continue;
+      for(const customTag of customTagsFiltered){
+        if(customTag.tagName.split("-")[0] === componentsExists.toUpperCase()){
+          const indexOfCustomTag = customTagsFiltered.findIndex(tag => tag === customTag);
+          customTagsFiltered.splice(indexOfCustomTag, 1);
+        }
       }
+
+      generateComponent(componentsExists);
     }
 
-    renderComponent(componentsExists);
+    removeDeadTags();
+  } catch(e){
+    console.log("Error", e.message);
   }
-  removeDeadTags();
-}); 
+};
 
-function renderComponent(component){
+function generateComponent(component){
   fetch(`./Components/${component}/index.html`)
   .then(response => {
     if(response.status === 404){
       body.innerHTML = Errors.generateHTMLError(response);
+      return;
     }
 
     return response.text()
   })
   .then(response => createCustomTag(component, response));
 };
+
+renderComponents();
