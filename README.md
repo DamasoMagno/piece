@@ -31,11 +31,11 @@ Components
 
 ## Como usar no HTML
 <p>
- Para o usuario conseguir manusear o framework corretamente em seu projetos, é nescessário seguir os seguintes padrões
+ Para o usuário conseguir manusear o framework corretamente em seu projetos, é nescessário seguir os seguintes padrões
 
  ```html
   <body>
-    <componentName-component></compoentName-component>
+    <componentName-component></componentName-component>
 
     <script src="./Components/index.js"></script>
   </body>
@@ -46,25 +46,24 @@ Components
 
 ## Todo componente deve conter a seguinte estrutura
 ```html
-  <nomedocomponent-component></nomedocomponent-component>
+  <componentName-component></componentName-component>
 ```
 
 <br>
 
 ## Adicionar atributos dinamicamente
 ```html
-<nomedocomponent-component
+<componentName-component>
  id-tagNameId-html
  class-tagNameClass-attributes
->  
-<nomedocomponent-component>
+> </componentName-component>
 ```
 
-<p>O usuario pode usar os seguintes atributos:</p>
+<p>O usuário pode usar os seguintes atributos:</p>
 <ul>
-  <li> html: Permite que o usuario adicione html dinamicamente para o elemento através do componente
+  <li> html: Permite que o usuário adicione html dinamicamente para o elemento através do componente
   </li>
-  <li> attributes: Permite que o usuario adicionar atributos como classes ou ações de clicks pelo componente
+  <li> attributes: Permite que o usuário adicionar atributos como classes ou ações de clicks pelo componente
   </li>
 </ul>
   
