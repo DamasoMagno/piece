@@ -23,7 +23,7 @@ Components
 
 ## Função de cada arquivo
 * Components: Conterá todos os components
-* Components.json: Irá deixar publico quais components existem na pasta Components
+* Components.json: Irá deixar público quais components existem na pasta Components
 * ComponentName: É a pasta do componente
 * Index.js: Arquivo responsavel por converter os conteudos de um componente em uma tag
 
@@ -31,7 +31,7 @@ Components
 
 ## Como usar no HTML
 <p>
- Para o usuario conseguir manusear o framework corretamente em seu projetos, é nescesario seguir os seguintes padrões
+ Para o usuario conseguir manusear o framework corretamente em seu projetos, é nescessário seguir os seguintes padrões
 
  ```html
   <body>
