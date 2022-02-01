@@ -1,11 +1,11 @@
 # O projeto
 <p align="justify">
- <strong>HTMLComponents</strong> é um projeto desenvolvido para atuar como um  framework simples na criação de componentes, para facilitar o desenvolvimento de projetos usando <strong>HTML, CSS e Javascript Vanilla.</strong>
+ Piece.js foi desenvolvido com a missão de ajudar desenvolvedores que ainda atuam usando JavaScript Vanilla, por meio da componentização, sistema usado hoje pelos mais famosos frameworks JavaScript. Através dessa ferramenta, é possível criar um arquivo html com função especifica e integra-la as mais diversas páginas, evetiando a repetição de código html.
 </p>
 
 </br>
 
-## Estrutura de um projeto usando HTMLComponents
+## Estrutura de um projeto usando Piece.js
 ```javascript
 Components
   -> ComponentName
@@ -29,25 +29,25 @@ Components
 
 </br>
 
+## Todo componente deve conter a seguinte estrutura
+```html
+  <componentName-component></componentName-component>
+```
+
+<br>
+
 ## Como usar no HTML
 <p>
- Para o usuário conseguir manusear o framework corretamente em seu projetos, é nescessário seguir os seguintes padrões
+ Para o usuário conseguir manusear o framework corretamente, é nescessário seguir os seguintes padrões
 
  ```html
   <body>
     <componentName-component></componentName-component>
 
-    <script src="./Components/index.js"></script>
+    <script src="./Components/index.js" />
   </body>
  ```
 </p>
-
-<br>
-
-## Todo componente deve conter a seguinte estrutura
-```html
-  <componentName-component></componentName-component>
-```
 
 <br>
 
